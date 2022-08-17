@@ -95,6 +95,10 @@ class Evaluator:
             dects = sorted(dects, key=lambda conf: conf[2], reverse=True)
             TP = np.zeros(len(dects))
             FP = np.zeros(len(dects))
+            tp_confs = []
+            fp_confs = []
+            size_miou_conf = []
+            
             # create dictionary with amount of gts for each image
             det = {key: np.zeros(len(gts[key])) for key in gts}
 
@@ -111,18 +115,27 @@ class Evaluator:
                     if iou > iouMax:
                         iouMax = iou
                         jmax = j
+                
+                area = Evaluator._getArea(dects[d][3])
+                conf = dects[d][2] 
                 # Assign detection as true positive/don't care/false positive
                 if iouMax >= IOUThreshold:
                     if det[dects[d][0]][jmax] == 0:
                         TP[d] = 1  # count as true positive
                         det[dects[d][0]][jmax] = 1  # flag as already 'seen'
+                        tp_confs.append(conf)
+                        size_miou_conf.append([area, iouMax, conf])
                         # print("TP")
                     else:
                         FP[d] = 1  # count as false positive
+                        fp_confs.append(conf)
+                        size_miou_conf.append([area, 0, conf])
                         # print("FP")
                 # - A detected "cat" is overlaped with a GT "cat" with IOU >= IOUThreshold.
                 else:
                     FP[d] = 1  # count as false positive
+                    fp_confs.append(conf)
+                    size_miou_conf.append([area, 0, conf])
                     # print("FP")
             # compute precision, recall and average precision
             acc_FP = np.cumsum(FP)
@@ -144,7 +157,10 @@ class Evaluator:
                 'interpolated recall': mrec,
                 'total positives': npos,
                 'total TP': np.sum(TP),
-                'total FP': np.sum(FP)
+                'total FP': np.sum(FP),
+                'TP conf': np.mean(tp_confs),
+                'FP conf': np.mean(fp_confs),
+                'size miou conf': size_miou_conf
             }
             ret.append(r)
         return ret
