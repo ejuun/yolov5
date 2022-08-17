@@ -1,0 +1,15 @@
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../coco_mixed_yolov5
+train: 
+  - size50to100/train/images
+  - size50to150/train/images
+  - size100to150/train/images
+val: 
+  - size50to100/val/images
+  - size100to150/val/images
+test:
+  - size50to150/val/images
+
+# Classes
+nc: 1  # number of classes
+names: ['person']  # class names
